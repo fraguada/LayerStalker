@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layer Stalker</title>
+    <script src="js/d3.js"></script>
+
+</head>
+<body bgcolor="#EDEDED">
+
+    <div id="Main">Layers</div>
+
+    <script>
+
+        var init = function ()
+        {
+            var layers = [];
+        }
+
+        init();
+
+    </script>
+
+    <script>
+
+        function updateLayers(json)
+        {
+            layers = JSON.parse(json);
+
+            console.log(layers);
+
+            var mainDiv = document.getElementById("Main");
+
+            removeChildren(mainDiv);
+
+            var div = d3.select("#Main").selectAll("div")
+                .data(layers)
+                .enter()
+                .append("div")
+                .text(function (d) { return d.Name + ',' + d.Uuid + ',' + d.LayerIndex + ',' + d.LayerColor + ',' + d.ParentId; })
+                .style("color", function (d) { return d.LayerColor; });
+
+            return "done";
+            
+        }
+
+        function removeChildren (node) {
+            var last;
+            while (last = node.lastChild) node.removeChild(last);
+        };
+
+        function testUpdate()
+        {
+            var layersTest = [{ Uuid: "0000", Name: "Layer 1", LayerColor: 16777215}, { Uuid : "0001", Name : "Layer 2", LayerColor: 0 }];
+            var sLayers = JSON.stringify(layersTest);
+            updateLayers(sLayers);
+        }
+        
+
+    </script>
+
+</body>
+</html>
