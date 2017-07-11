@@ -94,10 +94,11 @@
                     .attr("class", "node")
                     .attr("transform", function (d) {
                         return "translate(" + d.y + "," + d.x + ")";
-                    });
+                    })
+                    .on("click", click);
 
                 nodeEnter.append("circle")
-                    .attr("r", 3)
+                    .attr("r", 10)
                     .style("fill", "#fff")
                     .style("stroke", function (d) { return d.LayerColor; });
 
@@ -123,8 +124,15 @@
 
             }
 
+            
+
             return "done";
 
+        }
+
+        function click(d) {
+            console.log('layerStalker://' + d.name);
+            window.location.replace('layerStalker://click/' + btoa(d.name));
         }
 
         function testUpdate() {

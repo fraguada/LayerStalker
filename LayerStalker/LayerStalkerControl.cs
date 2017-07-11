@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Reflection;
 using System.Diagnostics;
+using System.Text;
 
 namespace LayerStalker
 {
@@ -80,7 +81,20 @@ namespace LayerStalker
         private void OnBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
             Debug.WriteLine("Browser Navigating","Layer Stalker");
-            if (IndexLoaded) e.Cancel = true;
+            if (IndexLoaded)
+            {
+                e.Cancel = true;
+
+                Debug.WriteLine(e.Url.AbsolutePath, "Layer Stalker");
+
+                var decodedParams = Convert.FromBase64String(e.Url.AbsolutePath.Substring(1, e.Url.AbsolutePath.Length - 1));
+                string decodedString = Encoding.UTF8.GetString(decodedParams);
+                
+                Debug.WriteLine(decodedString, "Layer Stalker");
+                RhinoEventListeners.Instance.SelectObjects(decodedString);
+
+            }
+
 
         }
             

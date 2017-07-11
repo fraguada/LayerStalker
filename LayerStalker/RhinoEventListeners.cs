@@ -110,7 +110,7 @@ namespace LayerStalker
                     //RhinoDoc.BeginOpenDocument -= OnBeginOpenDocument;
                     RhinoDoc.EndOpenDocument -= OnEndOpenDocument;
                     //RhinoDoc.BeginSaveDocument -= OnBeginSaveDocument;
-                    //RhinoDoc.EndSaveDocument -= OnEndSaveDocument;
+                    RhinoDoc.EndSaveDocument -= OnEndSaveDocument;
                     //RhinoDoc.CloseDocument -= OnCloseDocument;
 
                     //RhinoDoc.AddRhinoObject -= OnAddRhinoObject;
@@ -182,6 +182,18 @@ namespace LayerStalker
 
             if(null != LayerStalkerPlugIn.Instance.UserControl)
                 LayerStalkerPlugIn.Instance.UserControl.UpdateLayers(json);
+        }
+
+        public void SelectObjects(string layer)
+        {
+            RhinoDoc.ActiveDoc.Objects.UnselectAll();
+            var objs = RhinoDoc.ActiveDoc.Objects.FindByLayer(layer);
+            if (null != objs && objs.Length > 0) { 
+            for (int i = 0; i < objs.Length; i++)
+                objs[i].Select(true);
+            RhinoDoc.ActiveDoc.Views.Redraw();
+            }
+
         }
 
         #region Application Events
@@ -278,6 +290,7 @@ namespace LayerStalker
         public static void OnEndSaveDocument(object sender, DocumentSaveEventArgs e)
         {
             DebugWriteMethod();
+            RhinoEventListeners.g_instance.WriteLayers();
         }
 
         /// <summary>
