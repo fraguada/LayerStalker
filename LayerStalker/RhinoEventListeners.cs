@@ -152,6 +152,15 @@ namespace LayerStalker
         public void WriteLayers()
         {
             List<SerializeableLayer> sLayers = new List<SerializeableLayer>();
+
+            sLayers.Add(new SerializeableLayer()
+            {
+                Uuid = Guid.Empty,
+                Name = Rhino.RhinoDoc.ActiveDoc.Name,
+                ParentId = null
+
+            });
+
             foreach (var layer in Rhino.RhinoDoc.ActiveDoc.Layers)
             {
                 if (!layer.IsDeleted)

@@ -4,60 +4,142 @@
     <meta charset="utf-8">
     <title>Layer Stalker</title>
     <script src="js/d3.js"></script>
-
+    <link rel="stylesheet" type="text/css" href="css/style.css">  
 </head>
 <body bgcolor="#EDEDED">
 
-    <div id="Main">Layers</div>
-
     <script>
 
-        var init = function ()
-        {
-            var layers = [];
+        var init = function () {
+            var data = [];
         }
 
         init();
 
-    </script>
+        //sourced from http://bl.ocks.org/d3noob/8329404
 
-    <script>
+        function updateLayers(json) {
+            data = JSON.parse(json);
 
-        function updateLayers(json)
-        {
-            layers = JSON.parse(json);
+            if (document.getElementById("dwg"))
+                d3.select("svg").remove();
 
-            console.log(layers);
+            //create 
 
-            var mainDiv = document.getElementById("Main");
+            // *********** Convert flat data into a nice tree ***************
+            // create a name: node map
+            var dataMap = data.reduce(function (map, node) {
+                map[node.id] = node;
+                return map;
+            }, {});
 
-            removeChildren(mainDiv);
+            // create the tree array
+            var treeData = [];
+            data.forEach(function (node) {
+                // add to parent
+                var parent = dataMap[node.parent];
+                if (parent) {
+                    // create child array if it doesn't exist
+                    (parent.children || (parent.children = []))
+                        // add node to child array
+                        .push(node);
+                } else {
+                    // parent is null or missing
+                    treeData.push(node);
+                }
+            });
 
-            var div = d3.select("#Main").selectAll("div")
-                .data(layers)
-                .enter()
-                .append("div")
-                .text(function (d) { return d.Name + ',' + d.Uuid + ',' + d.LayerIndex + ',' + d.LayerColor + ',' + d.ParentId; })
-                .style("color", function (d) { return d.LayerColor; });
+            // ************** Generate the tree diagram	 *****************
+            var margin = { top: 20, right: 120, bottom: 20, left: 120 },
+                width = 600 - margin.right - margin.left,
+                height = 500 - margin.top - margin.bottom;
+
+            var i = 0;
+
+            var tree = d3.layout.tree()
+                .size([height, width]);
+
+            var diagonal = d3.svg.diagonal()
+                .projection(function (d) { return [d.y, d.x]; });
+
+            var diagonal = d3.svg.diagonal()
+                .projection(function (d) { return [d.y, d.x]; });
+
+            var svg = d3.select("body").append("svg")
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom)
+                .attr("id", "dwg")
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            root = treeData[0];
+
+            update(root);
+
+            function update(source) {
+
+                // Compute the new tree layout.
+                var nodes = tree.nodes(root).reverse(),
+                    links = tree.links(nodes);
+
+                // Normalize for fixed-depth.
+                nodes.forEach(function (d) { d.y = d.depth * 100; });
+
+                // Declare the nodes…
+                var node = svg.selectAll("g.node")
+                    .data(nodes, function (d) { return d.id || (d.id = ++i); });
+
+                // Enter the nodes.
+                var nodeEnter = node.enter().append("g")
+                    .attr("class", "node")
+                    .attr("transform", function (d) {
+                        return "translate(" + d.y + "," + d.x + ")";
+                    });
+
+                nodeEnter.append("circle")
+                    .attr("r", 3)
+                    .style("fill", "#fff")
+                    .style("stroke", function (d) { return d.LayerColor; });
+
+                nodeEnter.append("text")
+                    .attr("x", function (d) {
+                        return d.children || d._children ? -13 : 13;
+                    })
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", function (d) {
+                        return d.children || d._children ? "end" : "start";
+                    })
+                    .text(function (d) { return d.name; })
+                    .style("fill-opacity", 1);
+
+                // Declare the links…
+                var link = svg.selectAll("path.link")
+                    .data(links, function (d) { return d.target.id; });
+
+                // Enter the links.
+                link.enter().insert("path", "g")
+                    .attr("class", "link")
+                    .attr("d", diagonal);
+
+            }
 
             return "done";
-            
+
         }
 
-        function removeChildren (node) {
-            var last;
-            while (last = node.lastChild) node.removeChild(last);
-        };
+        function testUpdate() {
 
-        function testUpdate()
-        {
-            var layersTest = [{ Uuid: "0000", Name: "Layer 1", LayerColor: 16777215}, { Uuid : "0001", Name : "Layer 2", LayerColor: 0 }];
+            var layersTest = [
+                { id: "1", parent: "0", name: "l1" },
+                { id: "0", parent: "", name: "model" },
+                { id: "3", parent: "1", name: "l3" },
+                { id: "4", parent: "1", name: "l4" },
+                { id: "2", parent: "0", name: "l2" },
+                { id: "5", parent: "2", name: "l5" }];
+
             var sLayers = JSON.stringify(layersTest);
             updateLayers(sLayers);
         }
-        
-
     </script>
-
 </body>
 </html>
